@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnackinAja - Kasir & Pemesanan Online</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { orange: '#FF6B00', amber: '#FF9900', dark: '#1E1E24' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQxYgDmboQHNCaqWZ1f33FKcwUo3Jz9Yc",
+            authDomain: "snackinaja-app.firebaseapp.com",
+            databaseURL: "https://snackinaja-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "snackinaja-app",
+            storageBucket: "snackinaja-app.firebasestorage.app",
+            messagingSenderId: "298146141764",
+            appId: "1:298146141764:web:dcd5ce415378a084430e11",
+            measurementId: "G-9FBPS14QN9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.sendOrderToFirebase = async function(orderObj) {
+            try {
+                const ordersRef = ref(db, 'orders');
+                await push(ordersRef, orderObj);
+                return true;
+            } catch (error) {
+                console.error("Gagal mengirim pesanan:", error);
+                return false;
+            }
+        };
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand-orange rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">
+                    <img src="Logo.png">
+                </div>
+                <div>
+                    <h1 class="font-black text-lg text-gray-900 tracking-tight leading-none">SNACKINAJA</h1>
+                    <p class="text-[11px] text-gray-500 font-medium">Sistem Pemesanan Online</p>
+                </div>
+            </div>
+            <a href="penjual.html.html" target="_blank" class="bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-store text-amber-400"></i>
+                <span>Buka Dashboard Penjual</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Menu Catalog (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+                <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1" id="categoryContainer"></div>
+                <div class="relative w-full sm:w-48">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Cari menu..." class="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-brand-orange">
+                </div>
+            </div>
+            <div id="menuGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4"></div>
+        </section>
+
+        <!-- Right Column: Cart & Order Form (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between h-full">
+                <div>
+                    <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+                        <h2 class="font-bold text-gray-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-brand-orange"></i> Rincian Pesanan
+                        </h2>
+                        <span id="cartBadge" class="text-xs bg-orange-100 text-brand-orange font-bold px-2.5 py-1 rounded-lg">0 Item</span>
+                    </div>
+
+                    <div class="space-y-3 mb-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Nama Pemesan <span class="text-red-500">*</span></label>
+                            <input type="text" id="customerName" placeholder="Masukkan nama pemesan" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-brand-orange font-medium">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Tipe Pesanan</label>
+                                <select id="orderType" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium">
+                                    <option value="Dine In (Makan di Tempat)">Dine In</option>
+                                    <option value="Take Away (Bungkus)">Take Away</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-gray-600 mb-1">Nomor Meja / Ket.</label>
+                                <input type="text" id="tableInfo" placeholder="Contoh: Meja 04" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Catatan Pesanan</label>
+                            <textarea id="orderNotes" rows="2" placeholder="Catatan tambahan..." class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-b border-gray-100 py-3 mb-4">
+                        <p class="text-xs font-bold text-gray-700 mb-2">Item Terpilih:</p>
+                        <div id="cartItemsContainer" class="max-h-48 overflow-y-auto space-y-2 pr-1"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-[11px] font-bold text-gray-600 mb-2">Metode Pembayaran</label>
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <button type="button" onclick="selectPaymentMethod('cash')" id="payBtnCash" class="pay-btn p-2 border-2 border-brand-orange bg-orange-50 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer">
+                                <i class="fa-solid fa-money-bill-wave text-brand-orange mb-1"></i>
+                                <span class="text-[11px] font-bold">CASH</span>
+                            </button>
+                            <button type="button" onclick="selectPaymentMethod('qris')" id="payBtnQris" class="pay-btn p-2 border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer">
+                                <i class="fa-solid fa-qrcode text-gray-600 mb-1"></i>
+                                <span class="text-[11px] font-bold">QRIS</span>
+                            </button>
+                            <button type="button" onclick="selectPaymentMethod('transfer')" id="payBtnTransfer" class="pay-btn p-2 border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer">
+                                <i class="fa-solid fa-building-columns text-gray-600 mb-1"></i>
+                                <span class="text-[11px] font-bold">TRANSFER</span>
+                            </button>
+                        </div>
+
+                        <div id="paymentBoxCash" class="p-3 bg-orange-50 border border-orange-200 rounded-xl text-xs mt-2 space-y-1">
+                            <p class="font-bold text-gray-800"><i class="fa-solid fa-money-bill-wave text-brand-orange"></i> Pembayaran Tunai (Cash)</p>
+                            <div class="bg-white p-2.5 rounded-lg border border-gray-200 space-y-1 text-center">
+                                <p class="text-xs text-gray-600">Silakan lakukan pembayaran secara tunai langsung di kasir / saat pesanan diantar.</p>
+                                <p class="text-[10px] text-brand-orange font-bold mt-1">💡 Siapkan uang pas untuk mempercepat transaksi.</p>
+                            </div>
+                        </div>
+
+                        <!-- Kotak Informasi Detail Pembayaran (QRIS Terintegrasi) -->
+                        <div id="paymentBoxQris" class="hidden p-3 bg-orange-50 border border-orange-200 rounded-xl text-xs mt-2">
+                            <p class="font-bold text-gray-800 mb-1"><i class="fa-solid fa-qrcode text-brand-orange"></i> Pembayaran QRIS</p>
+                            <div class="bg-white p-3 rounded-lg text-center border border-gray-200">
+                                <!-- Gambar Barcode QRIS -->
+                                <img src="Qris.jpeg" alt="Barcode QRIS SnackinAja" class="w-48 h-48 mx-auto object-contain my-2 rounded border border-gray-100 shadow-sm" onerror="this.onerror=null; this.src='qris.jpg';">
+                                <p class="text-[11px] font-bold text-gray-700">Scan QRIS "SnackinAja"</p>
+                                <p class="text-[10px] text-gray-500">Bisa menggunakan GoPay, OVO, Dana, ShopeePay, BCA, dll.</p>
+                            </div>
+                        </div>
+
+                        <div id="paymentBoxTransfer" class="hidden p-3 bg-orange-50 border border-orange-200 rounded-xl text-xs mt-2 space-y-1">
+                            <p class="font-bold text-gray-800"><i class="fa-solid fa-building-columns text-brand-orange"></i> Transfer Bank BCA</p>
+                            <div class="bg-white p-2.5 rounded-lg border border-gray-200 space-y-1">
+                                <p class="text-xs text-gray-600">No. Rekening: <strong class="text-gray-900 font-mono text-sm">006801030332538</strong></p>
+                                <p class="text-xs text-gray-600">Atas Nama: <strong>Sri milawati</strong></p>
+                                <button type="button" onclick="copyAccountNumber('006801030332538')" class="w-full mt-1 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[10px] font-bold cursor-pointer">
+                                    <i class="fa-regular fa-copy"></i> Salin Nomor Rekening
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="space-y-1.5 mb-4 border-t border-gray-100 pt-3">
+                        <div class="flex justify-between text-sm font-black text-gray-900">
+                            <span>Total Tagihan</span>
+                            <span id="totalText" class="text-brand-orange text-base">Rp 0</span>
+                        </div>
+                    </div>
+                    <button onclick="submitOrder()" class="w-full py-3.5 bg-brand-orange hover:bg-orange-600 text-white rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Pesanan ke Penjual
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript Aplikasi Pembeli -->
+    <script>
+       const menuData = [
+            { id: 'snack-1', name: 'Batagor', category: 'snack', price: 5000, desc: 'Makaroni renyah bumbu pedas daun jeruk.', image: "bataor.jpeg" },
+            { id: 'snack-2', name: 'Basreng', category: 'snack', price: 7000, desc: 'Bakso goreng renyah bumbu cabai.', image: "basreng.jpg" },
+            { id: 'Snack-3', name: 'Ice Cream', category: 'makanan', price: 22000, desc: 'Seblak kuah kencur pedas komplit.', image: "ice cream.jpg" },
+            { id: 'Snack-4', name: 'Cireng', category: 'snack', price: 6000, desc: 'Es teh manis segar porsi mantap.', image: "Cireng.jpg" },
+            { id: 'Snack-5', name: 'Nasi Cokot', category: 'makanan', price: 6000, desc: 'Es teh manis segar porsi mantap.', image: "Nasi Cokot.png" },
+            { id: 'Snack-6', name: 'SPARGO (Singkong Parut Goreng)', category: 'snack', price: 5000, desc: 'Es teh manis segar porsi mantap.', image: "singkong.jpg" }
+        ];
+
+        const categories = [
+            { id: 'all', label: 'Semua Menu', icon: 'fa-border-all' },
+            { id: 'snack', label: 'Camilan', icon: 'fa-cookie-bite' },
+            { id: 'makanan', label: 'Makanan', icon: 'fa-bowl-food' },
+            { id: 'minuman', label: 'Minuman', icon: 'fa-mug-hot' }
+        ];
+
+        let currentCategory = 'all';
+        let searchQuery = '';
+        let cart = {};
+        let selectedPayment = 'cash';
+
+        window.onload = function() {
+            renderCategories();
+            renderMenu();
+            renderCart();
+        };
+
+        function renderCategories() {
+            let html = '';
+            categories.forEach(cat => {
+                const isActive = currentCategory === cat.id;
+                html += `<button onclick="setCategory('${cat.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${isActive ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-600'}">
+                    <i class="fa-solid ${cat.icon}"></i> ${cat.label}
+                </button>`;
+            });
+            document.getElementById('categoryContainer').innerHTML = html;
+        }
+
+        function setCategory(id) { 
+            currentCategory = id; 
+            renderCategories(); 
+            renderMenu(); 
+        }
+
+        function handleSearch() { 
+            searchQuery = document.getElementById('searchInput').value.toLowerCase(); 
+            renderMenu(); 
+        }
+
+        function renderMenu() {
+            const grid = document.getElementById('menuGrid');
+            const filtered = menuData.filter(i => (currentCategory === 'all' || i.category === currentCategory) && i.name.toLowerCase().includes(searchQuery));
+            
+            let html = '';
+            filtered.forEach(item => {
+                const qty = cart[item.id] || 0;
+                html += `
+                <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                    <div class="relative aspect-square bg-gray-100">
+                        <img src="${item.image}" class="w-full h-full object-cover">
+                        <span class="absolute top-2 right-2 bg-white/90 text-brand-orange text-xs font-black px-2 py-0.5 rounded-lg">Rp ${item.price.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="font-bold text-gray-800 text-xs mb-1">${item.name}</h3>
+                        <p class="text-[11px] text-gray-500 line-clamp-2">${item.desc}</p>
+                    </div>
+                    <div class="px-3 pb-3 flex items-center justify-between border-t border-gray-50 pt-2">
+                        <span class="text-[10px] text-gray-400">Jumlah: ${qty}</span>
+                        <div class="flex items-center gap-1">
+                            ${qty > 0 ? `<button onclick="updateCart('\${item.id}', -1)" class="w-6 h-6 bg-amber-100 text-amber-900 rounded-lg font-bold text-xs cursor-pointer">-</button>` : ''}
+                            <button onclick="updateCart('${item.id}', 1)" class="w-6 h-6 bg-brand-orange text-white rounded-lg font-bold text-xs cursor-pointer">+</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            grid.innerHTML = html;
+        }
+
+        function copyAccountNumber(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Nomor rekening ' + text + ' atas nama Sri milawati berhasil disalin!');
+            }).catch(err => {
+                alert('Gagal menyalin nomor rekening.');
+            });
+        }
+
+        function updateCart(id, change) {
+            cart[id] = (cart[id] || 0) + change;
+            if (cart[id] <= 0) delete cart[id];
+            renderCart();
+            renderMenu();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItemsContainer');
+            const keys = Object.keys(cart);
+            let subtotal = 0;
+            let totalItemCount = 0;
+
+            if (keys.length === 0) {
+                container.innerHTML = `<p class="text-xs text-center text-gray-400 py-4">Keranjang kosong</p>`;
+                document.getElementById('cartBadge').innerText = '0 Item';
+                document.getElementById('totalText').innerText = 'Rp 0';
+                return;
+            }
+
+            let html = '';
+            keys.forEach(id => {
+                const item = menuData.find(m => m.id === id);
+                const itemQty = cart[id];
+                const total = item.price * itemQty;
+                subtotal += total;
+                totalItemCount += itemQty;
+                html += `<div class="flex justify-between text-xs py-1 border-b border-gray-50"><span>${itemQty}x ${item.name}</span><strong>Rp ${total.toLocaleString('id-ID')}</strong></div>`;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('cartBadge').innerText = `${totalItemCount} Item`;
+            document.getElementById('totalText').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        }
+
+        function selectPaymentMethod(m) {
+            selectedPayment = m;
+            
+            document.getElementById('payBtnCash').className = "pay-btn p-2 border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer";
+            document.getElementById('payBtnQris').className = "pay-btn p-2 border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer";
+            document.getElementById('payBtnTransfer').className = "pay-btn p-2 border border-gray-200 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer";
+
+            document.getElementById('paymentBoxCash').classList.add('hidden');
+            document.getElementById('paymentBoxQris').classList.add('hidden');
+            document.getElementById('paymentBoxTransfer').classList.add('hidden');
+
+            if (m === 'cash') {
+                document.getElementById('payBtnCash').className = "pay-btn p-2 border-2 border-brand-orange bg-orange-50 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer";
+                document.getElementById('paymentBoxCash').classList.remove('hidden');
+            } else if (m === 'qris') {
+                document.getElementById('payBtnQris').className = "pay-btn p-2 border-2 border-brand-orange bg-orange-50 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer";
+                document.getElementById('paymentBoxQris').classList.remove('hidden');
+            } else if (m === 'transfer') {
+                document.getElementById('payBtnTransfer').className = "pay-btn p-2 border-2 border-brand-orange bg-orange-50 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer";
+                document.getElementById('paymentBoxTransfer').classList.remove('hidden');
+            }
+        }
+
+        async function submitOrder() {
+            const name = document.getElementById('customerName').value.trim();
+            if (!name) { alert('Mohon isi nama pemesan!'); return; }
+            if (Object.keys(cart).length === 0) { alert('Keranjang masih kosong!'); return; }
+
+            const orderObj = {
+                id: 'SNK-' + Date.now().toString().slice(-6),
+                timestamp: new Date().toLocaleString('id-ID'),
+                customerName: name,
+                orderType: document.getElementById('orderType').value,
+                tableInfo: document.getElementById('tableInfo').value.trim(),
+                notes: document.getElementById('orderNotes').value.trim(),
+                items: Object.keys(cart).map(id => {
+                    const m = menuData.find(item => item.id === id);
+                    return { name: m.name, price: m.price, qty: cart[id], subtotal: m.price * cart[id] };
+                }),
+                paymentMethod: selectedPayment.toUpperCase(),
+                totalPrice: Object.keys(cart).reduce((sum, id) => sum + (menuData.find(m => m.id === id).price * cart[id]), 0)
+            };
+
+            const success = await window.sendOrderToFirebase(orderObj);
+            if (success) {
+                alert('Pesanan berhasil dikirim ke Penjual secara real-time!');
+                cart = {};
+                document.getElementById('customerName').value = '';
+                document.getElementById('tableInfo').value = '';
+                document.getElementById('orderNotes').value = '';
+                renderCart();
+                renderMenu();
+            } else {
+                alert('Gagal mengirim pesanan, periksa koneksi.');
+            }
+        }
+    </script>
+</body>
+</html>

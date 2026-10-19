@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Penjual - SnackinAja</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+
+    <!-- Firebase SDK untuk Penjual -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQxYgDmboQHNCaqWZ1f33FKcwUo3Jz9Yc",
+            authDomain: "snackinaja-app.firebaseapp.com",
+            databaseURL: "https://snackinaja-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "snackinaja-app",
+            storageBucket: "snackinaja-app.firebasestorage.app",
+            messagingSenderId: "298146141764",
+            appId: "1:298146141764:web:dcd5ce415378a084430e11",
+            measurementId: "G-9FBPS14QN9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Pantau database 'orders' secara Real-time
+        const ordersRef = ref(db, 'orders');
+        onValue(ordersRef, (snapshot) => {
+            const data = snapshot.val();
+            const container = document.getElementById('ordersListContainer');
+            
+            if (!data) {
+                container.innerHTML = `
+                    <div class="text-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <i class="fa-solid fa-inbox text-5xl mb-3 text-gray-300"></i>
+                        <p class="font-bold text-sm text-gray-700">Belum ada pesanan masuk.</p>
+                        <p class="text-xs text-gray-400 mt-1">Halaman ini akan otomatis menampilkan pesanan saat pembeli mengirim pesanan.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            // Ubah object Firebase ke array dan balik urutannya (pesanan terbaru di atas)
+            const ordersArray = Object.entries(data).reverse();
+
+            ordersArray.forEach(([key, ord]) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-200 flex flex-col gap-3";
+                
+                // Buat HTML untuk daftar item secara terpisah agar nominal tampil sempurna
+                let itemsHtml = '';
+                if (ord.items && Array.isArray(ord.items)) {
+                    ord.items.forEach(i => {
+                        itemsHtml += `
+                            <div class="flex justify-between text-gray-600">
+                                <span>${i.qty}x ${i.name}</span>
+                                <span class="font-semibold">Rp ${i.subtotal.toLocaleString('id-ID')}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Buat HTML untuk catatan jika ada
+                const notesHtml = ord.notes 
+                    ? `<p class="text-amber-700 italic bg-amber-50 p-2 rounded-xl border border-amber-100"><strong>Catatan:</strong> "${ord.notes}"</p>` 
+                    : '';
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                        <div>
+                            <span class="font-black text-sm text-orange-600">${ord.id}</span>
+                            <span class="text-xs text-gray-400 ml-2"><i class="fa-regular fa-clock"></i> ${ord.timestamp}</span>
+                        </div>
+                        <span class="text-xs font-bold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">
+                            ${ord.paymentMethod}
+                        </span>
+                    </div>
+
+                    <div class="text-xs text-gray-700 space-y-1.5">
+                        <p><strong>Pemesan:</strong> <span class="text-gray-900 font-bold">${ord.customerName}</span> (${ord.orderType} <span class="text-orange-600 font-semibold">${ord.tableInfo || 'Tanpa Meja'}</span>)</p>
+                        ${notesHtml}
+                        
+                        <div class="bg-gray-50 p-3 rounded-xl mt-2 space-y-1.5 border border-gray-100">
+                            <p class="font-bold text-gray-800">Daftar Item:</p>
+                            ${itemsHtml}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2.5 border-t border-gray-100">
+                        <div>
+                            <span class="text-[11px] text-gray-400 block">Total Tagihan</span>
+                            <span class="text-sm font-black text-gray-900">Rp ${ord.totalPrice.toLocaleString('id-ID')}</span>
+                        </div>
+                        <a href="https://wa.me/?text=Halo%20${encodeURIComponent(ord.customerName)},%20pesanan%20${ord.id}%20di%20SnackinAja%20sudah%20kami%20terima%20dan%20sedang%20diproses ya!%20Terima%20kasih!" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp Pembeli
+                        </a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        });
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Navbar Penjual -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">P</div>
+                <div>
+                    <h1 class="font-black text-base text-gray-900 leading-none">Dashboard Penjual SnackinAja</h1>
+                    <p class="text-[11px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> Live Real-time Connected
+                    </p>
+                </div>
+            </div>
+            <a href="index.html.html" class="text-xs font-bold text-orange-600 hover:bg-orange-50 px-3 py-2 rounded-xl transition-all flex items-center gap-1">
+                <i class="fa-solid fa-arrow-left"></i> Menu Pembeli
+            </a>
+        </div>
+    </header>
+
+    <!-- Content Utama Pesanan Masuk -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6">
+        <div id="ordersListContainer" class="space-y-3">
+            <!-- Data pesanan masuk akan muncul otomatis di sini secara real-time -->
+        </div>
+    </main>
+</body>
+</html>
