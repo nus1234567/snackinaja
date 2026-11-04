@@ -58,8 +58,8 @@
     <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-brand-orange rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">
-                    <img src="Logo.png">
+                <div class="w-10 h-10 bg-brand-orange rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md overflow-hidden">
+                    <img src="Logo.png" alt="SnackinAja" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentElement.innerText='S';">
                 </div>
                 <div>
                     <h1 class="font-black text-lg text-gray-900 tracking-tight leading-none">SNACKINAJA</h1>
@@ -153,11 +153,9 @@
                             </div>
                         </div>
 
-                        <!-- Kotak Informasi Detail Pembayaran (QRIS Terintegrasi) -->
                         <div id="paymentBoxQris" class="hidden p-3 bg-orange-50 border border-orange-200 rounded-xl text-xs mt-2">
                             <p class="font-bold text-gray-800 mb-1"><i class="fa-solid fa-qrcode text-brand-orange"></i> Pembayaran QRIS</p>
                             <div class="bg-white p-3 rounded-lg text-center border border-gray-200">
-                                <!-- Gambar Barcode QRIS -->
                                 <img src="Qris.jpeg" alt="Barcode QRIS SnackinAja" class="w-48 h-48 mx-auto object-contain my-2 rounded border border-gray-100 shadow-sm" onerror="this.onerror=null; this.src='qris.jpg';">
                                 <p class="text-[11px] font-bold text-gray-700">Scan QRIS "SnackinAja"</p>
                                 <p class="text-[10px] text-gray-500">Bisa menggunakan GoPay, OVO, Dana, ShopeePay, BCA, dll.</p>
@@ -190,11 +188,103 @@
                 </div>
             </div>
         </section>
+
+        <!-- Modul Ulasan & Rating Pembeli -->
+        <section class="lg:col-span-12 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mt-2">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100 mb-5">
+                <div>
+                    <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-star text-amber-400"></i> Ulasan & Rating Pembeli
+                    </h3>
+                    <p class="text-xs text-gray-500">Berikan ulasan Anda atau lihat pendapat pelanggan SnackinAja.</p>
+                </div>
+                <div class="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 w-fit">
+                    <span class="text-2xl font-black text-amber-600" id="avgRatingHeader">4.9</span>
+                    <div>
+                        <div class="text-xs text-amber-500 flex gap-0.5">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <span class="text-[10px] text-gray-500 font-medium" id="totalReviewsText">Berdasarkan ulasan pelanggan</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Form Tambah Ulasan -->
+                <div class="lg:col-span-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <h4 class="font-bold text-xs text-gray-800 mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square text-brand-orange"></i> Tulis Ulasan Anda
+                    </h4>
+                    <form onsubmit="handleAddReview(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Nama Pemesan <span class="text-red-500">*</span></label>
+                            <input type="text" id="reviewAuthor" required placeholder="Contoh: Linus" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-brand-orange">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Rating Bintang <span class="text-red-500">*</span></label>
+                            <select id="reviewRating" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-brand-orange font-medium">
+                                <option value="5">⭐⭐⭐⭐⭐ (5/5) - Sangat Memuaskan</option>
+                                <option value="4">⭐⭐⭐⭐ (4/5) - Enak & Bagus</option>
+                                <option value="3">⭐⭐⭐ (3/5) - Cukup Baik</option>
+                                <option value="2">⭐⭐ (2/5) - Perlu Ditingkatkan</option>
+                                <option value="1">⭐ (1/5) - Kecewa</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-600 mb-1">Ulasan / Kesan <span class="text-red-500">*</span></label>
+                            <textarea id="reviewComment" required rows="3" placeholder="Tuliskan pengalaman nyemil kamu di sini..." class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-brand-orange"></textarea>
+                        </div>
+                        <button type="submit" class="w-full py-2.5 bg-brand-orange hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-paper-plane"></i> Kirim Ulasan
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lista Kartu Ulasan -->
+                <div class="lg:col-span-8">
+                    <div id="reviewsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[320px] overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- JavaScript Aplikasi Pembeli -->
+    <!-- Footer Informasi Kontak -->
+    <footer class="bg-white border-t border-gray-200 mt-8 py-6 text-xs text-gray-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-brand-orange rounded-lg flex items-center justify-center text-white font-bold text-base">
+                    S
+                </div>
+                <div>
+                    <p class="font-bold text-gray-900">SnackinAja Pekalongan</p>
+                    <p class="text-[11px] text-gray-500">Camilan Lezat & Praktis Setiap Saat</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-4 text-xs">
+                <a href="https://wa.me/6587895775505" target="_blank" class="flex items-center gap-1.5 hover:text-green-600 font-medium">
+                    <i class="fa-brands fa-whatsapp text-green-500 text-sm"></i>
+                    <span>+65 878 9577 5505</span>
+                </a>
+                <a href="mailto:snackinaja123@gmail.com" class="flex items-center gap-1.5 hover:text-brand-orange font-medium">
+                    <i class="fa-regular fa-envelope text-brand-orange text-sm"></i>
+                    <span>snackinaja123@gmail.com</span>
+                </a>
+                <a href="https://instagram.com/snackinaja123" target="_blank" class="flex items-center gap-1.5 hover:text-pink-600 font-medium">
+                    <i class="fa-brands fa-instagram text-pink-500 text-sm"></i>
+                    <span>@snackinaja123</span>
+                </a>
+            </div>
+
+            <div class="text-[11px] text-gray-400">
+                &copy; 2026 SnackinAja. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Aplikasi -->
     <script>
-       const menuData = [
+        const menuData = [
             { id: 'snack-1', name: 'Batagor', category: 'snack', price: 5000, desc: 'Bumbu kacang melimpah & kriuknya nagih!.', image: "bataor.jpeg" },
             { id: 'snack-2', name: 'Basreng', category: 'snack', price: 7000, desc: 'Tekstur renyah garing dipadu bumbu melimpah: Pedas Daun Jeruk, Balado, BBQ, hingga Jagung Manis.', image: "basreng.jpg" },
             { id: 'Snack-3', name: 'Ice Cream', category: 'makanan', price: 3000, desc: 'Manis & segar, pas banget buat penyejuk suasana.', image: "ice cream.jpg" },
@@ -215,10 +305,20 @@
         let cart = {};
         let selectedPayment = 'cash';
 
+        // Data Ulasan Default
+        const defaultReviews = [
+            { id: 101, name: 'Siti Rahma', rating: 5, comment: 'Batagornya gurih banget, bumbu kacangnya melimpah! Wajib coba deh.', time: 'Kemarin' },
+            { id: 102, name: 'Rian Prasetya', rating: 5, comment: 'Basreng daun jeruknya juara, pedas renyah nagih parah.', time: '2 hari lalu' },
+            { id: 103, name: 'Dewi Lestari', rating: 4, comment: 'Nasi cokotnya praktis buat sarapan/makan siang. Rasanya mantap.', time: '3 hari lalu' }
+        ];
+
+        let reviews = JSON.parse(localStorage.getItem('snackinaja_reviews')) || defaultReviews;
+
         window.onload = function() {
             renderCategories();
             renderMenu();
             renderCart();
+            renderReviews();
         };
 
         function renderCategories() {
@@ -253,7 +353,7 @@
                 html += `
                 <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
                     <div class="relative aspect-square bg-gray-100">
-                        <img src="${item.image}" class="w-full h-full object-cover">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
                         <span class="absolute top-2 right-2 bg-white/90 text-brand-orange text-xs font-black px-2 py-0.5 rounded-lg">Rp ${item.price.toLocaleString('id-ID')}</span>
                     </div>
                     <div class="p-3">
@@ -263,7 +363,7 @@
                     <div class="px-3 pb-3 flex items-center justify-between border-t border-gray-50 pt-2">
                         <span class="text-[10px] text-gray-400">Jumlah: ${qty}</span>
                         <div class="flex items-center gap-1">
-                            ${qty > 0 ? `<button onclick="updateCart('\${item.id}', -1)" class="w-6 h-6 bg-amber-100 text-amber-900 rounded-lg font-bold text-xs cursor-pointer">-</button>` : ''}
+                            ${qty > 0 ? `<button onclick="updateCart('${item.id}', -1)" class="w-6 h-6 bg-amber-100 text-amber-900 rounded-lg font-bold text-xs cursor-pointer">-</button>` : ''}
                             <button onclick="updateCart('${item.id}', 1)" class="w-6 h-6 bg-brand-orange text-white rounded-lg font-bold text-xs cursor-pointer">+</button>
                         </div>
                     </div>
@@ -369,6 +469,85 @@
                 renderMenu();
             } else {
                 alert('Gagal mengirim pesanan, periksa koneksi.');
+            }
+        }
+
+        /* --- LOGIKA FITUR ULASAN & RATING --- */
+        function renderReviews() {
+            const container = document.getElementById('reviewsContainer');
+            if (!container) return;
+
+            if (reviews.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-8">Belum ada ulasan. Jadilah yang pertama memberikan ulasan!</p>`;
+                document.getElementById('avgRatingHeader').innerText = '0.0';
+                document.getElementById('totalReviewsText').innerText = 'Belum ada ulasan';
+                return;
+            }
+
+            const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+            const avgRating = (totalRating / reviews.length).toFixed(1);
+            document.getElementById('avgRatingHeader').innerText = avgRating;
+            document.getElementById('totalReviewsText').innerText = `Dari ${reviews.length} ulasan pelanggan`;
+
+            let html = '';
+            reviews.forEach((r) => {
+                let stars = '';
+                for (let i = 1; i <= 5; i++) {
+                    stars += `<i class="fa-solid fa-star ${i <= r.rating ? 'text-amber-400' : 'text-gray-200'}"></i>`;
+                }
+
+                html += `
+                <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl relative group">
+                    <button onclick="deleteReview(${r.id})" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xs p-1 transition-all cursor-pointer" title="Hapus Ulasan">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    <div class="flex items-center gap-2 mb-1">
+                        <div class="w-6 h-6 bg-orange-100 text-brand-orange font-bold rounded-full flex items-center justify-center text-[10px]">
+                            ${r.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-xs text-gray-800 leading-none">${r.name}</h5>
+                            <span class="text-[9px] text-gray-400">${r.time}</span>
+                        </div>
+                    </div>
+                    <div class="text-[10px] mb-1">${stars}</div>
+                    <p class="text-[11px] text-gray-600 italic">"${r.comment}"</p>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function handleAddReview(event) {
+            event.preventDefault();
+            const name = document.getElementById('reviewAuthor').value.trim();
+            const rating = parseInt(document.getElementById('reviewRating').value);
+            const comment = document.getElementById('reviewComment').value.trim();
+
+            if (!name || !comment) return;
+
+            const newReview = {
+                id: Date.now(),
+                name: name,
+                rating: rating,
+                comment: comment,
+                time: 'Baru saja'
+            };
+
+            reviews.unshift(newReview);
+            localStorage.setItem('snackinaja_reviews', JSON.stringify(reviews));
+            renderReviews();
+
+            document.getElementById('reviewAuthor').value = '';
+            document.getElementById('reviewComment').value = '';
+            alert('Terima kasih! Ulasan Anda berhasil ditambahkan.');
+        }
+
+        function deleteReview(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus ulasan ini?')) {
+                reviews = reviews.filter(r => r.id !== id);
+                localStorage.setItem('snackinaja_reviews', JSON.stringify(reviews));
+                renderReviews();
             }
         }
     </script>
